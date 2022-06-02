@@ -1,0 +1,66 @@
+
+ifdef PIN_ROOT
+	CONFIG_ROOT := $(PIN_ROOT)/source/tools/Config
+else
+	CONFIG_ROOT := ../Config
+endif
+include $(CONFIG_ROOT)/makefile.config
+include $(TOOLS_ROOT)/Config/makefile.default.rules
+
+#TOOL=memtracer
+
+#LINKER?=${CXX}
+#CXXFLAGS ?= -Wall -Werror -Wno-unknown-pragmas -D_GLIBCXX_USE_CXX11_ABI=0 -fno-rtti $(DBG) $(OPT)
+#CXXFLAGS += -I. -D_GLIBCXX_USE_CXX11_ABI=0
+CXXFLAGS += -Wall -Werror -Wno-unknown-pragmas
+
+
+OBJS=$(OBJDIR)memtracer$(OBJ_SUFFIX)
+
+all: $(OBJDIR)memtracer$(PINTOOL_SUFFIX)
+
+$(OBJDIR)%$(OBJ_SUFFIX): %.cpp
+	$(CXX) -std=c++11 $(TOOL_CXXFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+
+$(OBJDIR)memtracer$(PINTOOL_SUFFIX): $(OBJDIR)memtracer$(OBJ_SUFFIX) $(OBJS)
+		$(LINKER) $(TOOL_LDFLAGS) $(LINK_EXE)$@ $^ $(CONTROLLERLIB) $(TOOL_LPATHS) $(TOOL_LIBS) 
+
+clean:
+	rm $(OBJDIR)*
+.PHONY: all
+
+#OBJS=$(OBJDIR)memtracer.o
+
+#$(OBJDIR):
+#	mkdir -p $(OBJDIR)
+
+#all: $(OBJDIR)$(TOOL)$(PINTOOL_SUFFIX)
+
+#$(OBJDIR)memtracer.o: %.cpp
+#	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+#$(OBJDIR)$(TOOL)$(PINTOOL_SUFFIX): $(OBJS)
+#	$(CXX) -g $(TOOL_LDFLAGS) $(LINK_EXE)$@ $< $(TOOL_LPATHS) $(TOOL_LIBS)
+
+#$(OBJDIR)mempin_inscount.o: mempin.h mempin_inscount.h mempin_inscount.cpp
+#	$(CXX) -g -c $(CXXFLAGS) $(TOOL_CXXFLAGS) mempin_inscount.cpp -o $(OBJDIR)mempin_inscount.o
+#
+#$(OBJDIR)mempin_proccount.o: mempin.h mempin_proccount.h mempin_proccount.cpp
+#	$(CXX) -g -c $(CXXFLAGS) $(TOOL_CXXFLAGS) mempin_proccount.cpp -o $(OBJDIR)mempin_proccount.o
+#
+#$(OBJDIR)mempin_malloctrace.o: mempin.h mempin_malloctrace.h mempin_malloctrace.cpp
+#	$(CXX) -g -c $(CXXFLAGS) $(TOOL_CXXFLAGS) mempin_malloctrace.cpp -o $(OBJDIR)mempin_malloctrace.o
+#
+#$(OBJDIR)mempin.o: mempin.h mempin.cpp mempin_tools.h mempin_utils.h
+#	$(CXX) -g -c $(CXXFLAGS) $(TOOL_CXXFLAGS) mempin.cpp -o $(OBJDIR)mempin.o
+#
+#mempin: $(OBJDIR)mempin.o $(OBJDIR)mempin_inscount.o $(OBJDIR)mempin_proccount.o $(OBJDIR)mempin_malloctrace.o
+#	$(CXX) -g $(TOOL_LDFLAGS) $(LINK_DEBUG) $(OBJDIR)mempin.o $(OBJDIR)mempin_inscount.o $(OBJDIR)mempin_proccount.o $(OBJDIR)mempin_malloctrace.o -o $(OBJDIR)mempin.so $(PIN_LPATHS) $(PIN_LIBS) $(DBG)
+
+
+#.PHONY: $(OBJDIR)$(TOOL)$(PINTOOL_SUFFIX)
+
+#.PHONY: all
+#clean:
+#	rm -f $(OBJDIR)*
