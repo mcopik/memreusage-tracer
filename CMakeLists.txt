@@ -12,3 +12,6 @@ endif()
 
 add_subdirectory(pintool)
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bin/memtracer.in ${CMAKE_CURRENT_BINARY_DIR}/bin/memtracer @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bin/memtracer_ompi.in ${CMAKE_CURRENT_BINARY_DIR}/bin/memtracer_ompi @ONLY)
+
