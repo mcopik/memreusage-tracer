@@ -10,4 +10,5 @@ if(NOT Pintool_FOUND)
 	message(FATAL_ERROR "Pintool has not been found but it's required. Please provide PIN_ROOT with correct location.")
 endif()
 
+add_subdirectory(pintool)
 
