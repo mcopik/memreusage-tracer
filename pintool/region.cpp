@@ -31,13 +31,9 @@ void Region::write(uintptr_t addr, int32_t size)
   iter_t it = _counts.find(addr);
 
   if(it == _counts.end()) {
-
     _counts.insert(std::make_pair(addr, std::make_pair(0, 1)));
-
   } else {
-
     (*it).second.second += 1;
-
   }
 }
 
@@ -58,6 +54,7 @@ void Regions::open(const std::string& file_name)
 
 void Regions::close()
 {
+  // Ignore data from unfinished regions
   log_file.close();
   for(iter_t it = _regions.begin(); it != _regions.end(); ++it)
     delete (*it).second;
@@ -71,7 +68,6 @@ Region* Regions::startRegion(std::string name)
 
     Region* region = new Region{name};
     _regions.insert(std::make_pair(name, region));
-
     return region;
 
   } else {
@@ -83,6 +79,7 @@ Region* Regions::startRegion(std::string name)
 void Regions::endRegion(Region* region)
 {
   region->print(log_file);
+  region->reset();
 }
 
 

@@ -14,10 +14,11 @@ KNOB<std::string> KnobOutputFile(
   "o", "tracer.out", "Specify filename of the output profile."
 );
 
-//PIN_LOCK OutFileLock;
-
 Regions memory_regions;
 Region* current_region;
+
+const char * ROI_BEGIN = "__memreuse_roi_begin";
+const char * ROI_END = "__memreuse_roi_end";
 
 static CONTROLLER::CONTROL_MANAGER CONTROL;
 bool ENABLED = false;
@@ -43,12 +44,24 @@ VOID Handler(EVENT_TYPE ev, VOID* val, CONTEXT* ctxt, VOID* ip, THREADID tid, bo
         ASSERTX(false);
   }
 }
+
+VOID start_roi(const char* name)
+{
+  current_region = memory_regions.startRegion(name);
+	ENABLED = 1;
+}
+
+VOID end_roi(const char* name)
+{
+	ENABLED = 0;
+  memory_regions.endRegion(current_region);
+  current_region = nullptr;
+}
  
 VOID memory_read(VOID* ip, VOID* addr, UINT32 size)
 {
   if(ENABLED) {
     current_region->read(reinterpret_cast<uintptr_t>(addr), size);
-    //LOG_FILE << "R " << addr << " " << size << '\n';
   }
 }
 
@@ -56,7 +69,6 @@ VOID memory_write(VOID* ip, VOID* addr, UINT32 size)
 {
   if(ENABLED) {
     current_region->write(reinterpret_cast<uintptr_t>(addr), size);
-    //LOG_FILE << "W " << addr << " " << size << '\n';
   }
 } 
 
@@ -100,7 +112,40 @@ VOID trace(TRACE trace, VOID* v)
 		}
 	}
 }
- 
+
+VOID Image(IMG img, VOID *v)
+{
+	RTN begin = RTN_FindByName(img, ROI_BEGIN);
+	if(RTN_Valid(begin)) {
+
+    RTN_Open(begin);
+
+    RTN_InsertCall(
+      begin, IPOINT_BEFORE, (AFUNPTR)start_roi,
+      IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
+      IARG_END
+    );
+
+    RTN_Close(begin);
+	}
+
+	RTN end = RTN_FindByName(img, ROI_END);
+	if(RTN_Valid(end)) {
+
+
+    RTN_Open(end);
+
+    RTN_InsertCall(
+      end, IPOINT_BEFORE, (AFUNPTR)end_roi,
+      IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
+      IARG_END
+    );
+
+    RTN_Close(end);
+
+	}
+}
+
 VOID fini(INT32 code, VOID* v)
 {
   memory_regions.close();
@@ -128,6 +173,8 @@ int main(int argc, char * argv[])
   CONTROL.RegisterHandler(Handler, 0, FALSE);
   CONTROL.Activate();
  
+  IMG_AddInstrumentFunction(Image, 0);
+
 	TRACE_AddInstrumentFunction(trace, 0);
 
 	PIN_AddFiniFunction(fini, 0);
