@@ -7,13 +7,17 @@
 #include "control_manager.H"
 #include "controller_events.H"
 
+#include "region.hpp"
+
 KNOB<std::string> KnobOutputFile(
   KNOB_MODE_WRITEONCE, "pintool",
   "o", "tracer.out", "Specify filename of the output profile."
 );
 
-std::ofstream LOG_FILE;
-PIN_LOCK OutFileLock;
+//PIN_LOCK OutFileLock;
+
+Regions memory_regions;
+Region* current_region;
 
 static CONTROLLER::CONTROL_MANAGER CONTROL;
 bool ENABLED = false;
@@ -27,10 +31,12 @@ VOID Handler(EVENT_TYPE ev, VOID* val, CONTEXT* ctxt, VOID* ip, THREADID tid, bo
   {
     case EVENT_START:
         ENABLED = 1;
+        current_region = memory_regions.startRegion("default");
         break;
 
     case EVENT_STOP:
         ENABLED = 0;
+        memory_regions.endRegion(current_region);
         break;
 
     default:
@@ -40,14 +46,18 @@ VOID Handler(EVENT_TYPE ev, VOID* val, CONTEXT* ctxt, VOID* ip, THREADID tid, bo
  
 VOID memory_read(VOID* ip, VOID* addr, UINT32 size)
 {
-  if(ENABLED)
-    LOG_FILE << "R " << addr << " " << size << '\n';
+  if(ENABLED) {
+    current_region->read(reinterpret_cast<uintptr_t>(addr), size);
+    //LOG_FILE << "R " << addr << " " << size << '\n';
+  }
 }
 
 VOID memory_write(VOID* ip, VOID* addr, UINT32 size)
 {
-  if(ENABLED)
-    LOG_FILE << "W " << addr << " " << size << '\n';
+  if(ENABLED) {
+    current_region->write(reinterpret_cast<uintptr_t>(addr), size);
+    //LOG_FILE << "W " << addr << " " << size << '\n';
+  }
 } 
 
 VOID trace(TRACE trace, VOID* v)
@@ -93,8 +103,9 @@ VOID trace(TRACE trace, VOID* v)
  
 VOID fini(INT32 code, VOID* v)
 {
-	LOG_FILE << "eof\n" << std::endl;
-	LOG_FILE.close();
+  memory_regions.close();
+	//LOG_FILE << "eof\n" << std::endl;
+	//LOG_FILE.close();
 }
 
 
@@ -112,7 +123,7 @@ int main(int argc, char * argv[])
   if (PIN_Init(argc, argv))
     return usage();
 
-  LOG_FILE.open(KnobOutputFile.Value().c_str(), std::ios::out);
+  memory_regions.open(KnobOutputFile.Value());
 
   CONTROL.RegisterHandler(Handler, 0, FALSE);
   CONTROL.Activate();
