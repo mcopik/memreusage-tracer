@@ -41,7 +41,7 @@ The file `tracer,out` will contain the statistics on memory accesses for entered
 To run an MPI application with OpenMPI, use:
 
 ```
-<build-dir>/bin/memtracer_ompi -o tracer.out <your-app-with-arguments>
+mpirun -np 2 <mpiflags> <build-dir>/bin/memtracer_ompi -o tracer.out <your-app-with-arguments>
 ```
 
 The output for each MPI process will be in `tracer.{rank}.out`.
