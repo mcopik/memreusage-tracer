@@ -21,7 +21,7 @@ $(OBJDIR)%$(OBJ_SUFFIX): $(SRCDIR)/%.cpp
 	$(CXX) -std=c++11 $(TOOL_CXXFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 
-$(OBJDIR)memtracer$(PINTOOL_SUFFIX): $(OBJDIR)memtracer$(OBJ_SUFFIX) $(OBJDIR)region$(OBJ_SUFFIX) $(OBJS)
+$(OBJDIR)memtracer$(PINTOOL_SUFFIX): $(OBJDIR)memtracer$(OBJ_SUFFIX) $(OBJDIR)region$(OBJ_SUFFIX) $(OBJS) $(CONTROLLERLIB)
 	$(LINKER) $(TOOL_LDFLAGS) $(LINK_EXE)$@ $^ $(CONTROLLERLIB) $(TOOL_LPATHS) $(TOOL_LIBS) 
 
 clean:
