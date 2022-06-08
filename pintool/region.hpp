@@ -8,13 +8,15 @@
 
 struct Region {
 
-  std::map<uint64_t, std::pair<int, int> > _counts;
+  std::map<std::pair<uint64_t, int32_t>, std::pair<int, int> > _counts;
   std::string _region_name;
+  int32_t _count;
 
-  typedef std::map<uint64_t, std::pair<int, int> >::iterator iter_t;
+  typedef std::map<std::pair<uint64_t, int32_t>, std::pair<int, int> >::iterator iter_t;
 
   Region(std::string region_name):
-    _region_name(region_name)
+    _region_name(region_name),
+    _count(0)
   {}
 
   void write(uintptr_t addr, int32_t size);
@@ -28,14 +30,16 @@ struct Regions {
 
   std::ofstream log_file;
   std::map<std::string, Region*> _regions;
+  std::string _file_name;
 
   typedef std::map<std::string, Region*>::iterator iter_t;
 
   ~Regions();
 
-  void open(const std::string& filename);
+  void filename(const std::string& filename);
   Region* startRegion(std::string name);
   void endRegion(Region*);
+  void open(const std::string& region);
   void close();
 
 };

@@ -1,5 +1,4 @@
 
-#include <iostream>
 #include <fstream>
 #include <string>
 
@@ -27,7 +26,6 @@ using namespace CONTROLLER;
 
 VOID Handler(EVENT_TYPE ev, VOID* val, CONTEXT* ctxt, VOID* ip, THREADID tid, bool bcast)
 {
-  std::cerr << "CONTROL " << ev << std::endl;
   switch (ev)
   {
     case EVENT_START:
@@ -148,6 +146,8 @@ VOID Image(IMG img, VOID *v)
 
 VOID fini(INT32 code, VOID* v)
 {
+  if(current_region)
+    memory_regions.endRegion(current_region);
   memory_regions.close();
 	//LOG_FILE << "eof\n" << std::endl;
 	//LOG_FILE.close();
@@ -168,7 +168,7 @@ int main(int argc, char * argv[])
   if (PIN_Init(argc, argv))
     return usage();
 
-  memory_regions.open(KnobOutputFile.Value());
+  memory_regions.filename(KnobOutputFile.Value());
 
   CONTROL.RegisterHandler(Handler, 0, FALSE);
   CONTROL.Activate();
