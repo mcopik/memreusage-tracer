@@ -5,7 +5,7 @@
 
 void Region::print(std::ofstream & of)
 {
-  of << _region_name << " " << _counts.size() << '\n';
+  of << "region " << _region_name << " " << _counts.size() << '\n';
   for(iter_t it = _counts.begin(); it != _counts.end(); ++it) {
     of << std::hex << (*it).first << " " << std::dec << (*it).second.first << " " << (*it).second.second << '\n';
   }
