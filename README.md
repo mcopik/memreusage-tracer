@@ -36,7 +36,7 @@ Run your application with:
 <build-dir>/bin/memtracer -o tracer.out <your-app-with-arguments>
 ```
 
-The file `tracer,out` will contain the statistics on memory accesses for entered regions.
+The files `tracer.out.{region}.{counter}` will contain the statistics on memory accesses for entered regions.
 
 To run an MPI application with OpenMPI, use:
 
@@ -44,6 +44,30 @@ To run an MPI application with OpenMPI, use:
 mpirun -np 2 <mpiflags> <build-dir>/bin/memtracer_ompi -o tracer.out <your-app-with-arguments>
 ```
 
-The output for each MPI process will be in `tracer.{rank}.out`.
+The output for each MPI process will be in `tracer.{rank}.out.{region}.{counter}`.
+
+### Postprocessing
+
+Install Python dependencies:
+
+```
+pip install -r tools/requirements.txt
+```
+
+Then run the the postprocessing analysis by pointing to the directory and naming schemes of produced files:
+
+```
+tools/postprocessing.py <dir>/tracer.out <out-file>
+```
+
+After a while, the results will be written to the output file. For each iteration,
+we compute the number of new memory regions that have been written or read:
+
+```
+,iteration,read_bytes,new_read_bytes,write_bytes,new_write_bytes
+0,0,5052433,5052433,0,0
+1,1,3371595,3371595,3177832,3177832
+2,2,473686,15020,140083,21080
+```
 
 
