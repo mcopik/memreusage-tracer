@@ -34,7 +34,7 @@ def process(filename: str):
         region = name.split('.')[-2]
         in_file = open(name, 'r')
         line = in_file.readline()
-        df = pd.read_table(in_file, sep=" ", names=["address", "size", "read", "write"], converters={'address': partial(int, base=16)})
+        df = pd.read_table(in_file, sep=" ", names=["address", "size", "read", "write", "read_host", "write_host"], converters={'address': partial(int, base=16)})
 
         if region not in data:
             data[region] = []
@@ -56,16 +56,21 @@ def process(filename: str):
 
             read_addresses = set()
             write_addresses = set()
+            read_host_addresses = set()
+            write_host_addresses = set()
 
             for data in region_data:
                 df = data[1]
                 iteration = data[0]
+
 
                 read = set()
                 for val in df.loc[df['read'] > 0].itertuples():
                     #[['address', 'size']]:
                     for j in range(val.size):
                         read.add(val.address + j)
+                    if val.read_host > 0:
+                        read_host_addresses.add(val.address + j)
 
                 old_read_addresses_len = len(read_addresses)
                 read_addresses.update(read)
@@ -74,16 +79,18 @@ def process(filename: str):
                 for val in df.loc[df['write'] > 0].itertuples():
                     for j in range(val.size):
                         write.add(val.address + j)
+                    if val.write_host > 0:
+                        write_host_addresses.add(val.address + j)
 
                 old_write_addresses_len = len(write_addresses)
                 write_addresses.update(write)
 
-                result.append([region, iteration, len(read), (len(read_addresses) - old_read_addresses_len), len(write), (len(write_addresses) - old_write_addresses_len)])
+                result.append([region, iteration, len(read), (len(read_addresses) - old_read_addresses_len), len(write), (len(write_addresses) - old_write_addresses_len), len(read_host_addresses), len(write_host_addresses)])
 
                 pb.update(1)
 
 
-    df = pd.DataFrame(data=result, columns=["region", "iteration", "read_bytes", "new_read_bytes", "write_bytes", "new_write_bytes"])
+    df = pd.DataFrame(data=result, columns=["region", "iteration", "read_bytes", "new_read_bytes", "write_bytes", "new_write_bytes", "host_read_bytes", "host_write_bytes"])
     return df
 
 if __name__ == "__main__":
