@@ -56,13 +56,13 @@ def process(filename: str):
 
             read_addresses = set()
             write_addresses = set()
-            read_host_addresses = set()
-            write_host_addresses = set()
 
             for data in region_data:
                 df = data[1]
                 iteration = data[0]
 
+                read_host_addresses = set()
+                write_host_addresses = set()
 
                 read = set()
                 for val in df.loc[df['read'] > 0].itertuples():
