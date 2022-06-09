@@ -18,9 +18,12 @@ Region* current_region;
 
 const char * ROI_BEGIN = "__memreuse_roi_begin";
 const char * ROI_END = "__memreuse_roi_end";
+const char * HOST_BEGIN = "__memreuse_host_begin";
+const char * HOST_END = "__memreuse_host_end";
 
 static CONTROLLER::CONTROL_MANAGER CONTROL;
 bool ENABLED = false;
+bool HOST_ENABLED = false;
 
 using namespace CONTROLLER;
 
@@ -45,21 +48,39 @@ VOID Handler(EVENT_TYPE ev, VOID* val, CONTEXT* ctxt, VOID* ip, THREADID tid, bo
 
 VOID start_roi(const char* name)
 {
+  if(current_region) {
+    memory_regions.endRegion(current_region);
+    current_region = nullptr;
+  }
   current_region = memory_regions.startRegion(name);
-	ENABLED = 1;
+  ENABLED = 1;
 }
 
 VOID end_roi(const char* name)
 {
-	ENABLED = 0;
-  memory_regions.endRegion(current_region);
-  current_region = nullptr;
+  ENABLED = 0;
+}
+
+VOID start_host()
+{
+  HOST_ENABLED = 1;
+}
+
+VOID end_host()
+{
+  HOST_ENABLED = 0;
+  if(current_region) {
+    memory_regions.endRegion(current_region);
+    current_region = nullptr;
+  }
 }
  
 VOID memory_read(VOID* ip, VOID* addr, UINT32 size)
 {
   if(ENABLED) {
     current_region->read(reinterpret_cast<uintptr_t>(addr), size);
+  } else if(HOST_ENABLED && current_region) {
+    current_region->read_host(reinterpret_cast<uintptr_t>(addr), size);
   }
 }
 
@@ -67,6 +88,8 @@ VOID memory_write(VOID* ip, VOID* addr, UINT32 size)
 {
   if(ENABLED) {
     current_region->write(reinterpret_cast<uintptr_t>(addr), size);
+  } else if(HOST_ENABLED && current_region) {
+    current_region->write_host(reinterpret_cast<uintptr_t>(addr), size);
   }
 } 
 
@@ -140,6 +163,36 @@ VOID Image(IMG img, VOID *v)
     );
 
     RTN_Close(end);
+
+	}
+
+	RTN host_begin = RTN_FindByName(img, HOST_BEGIN);
+	if(RTN_Valid(host_begin)) {
+
+
+    RTN_Open(host_begin);
+
+    RTN_InsertCall(
+      host_begin, IPOINT_BEFORE, (AFUNPTR)start_host,
+      IARG_END
+    );
+
+    RTN_Close(host_begin);
+
+	}
+
+	RTN host_end = RTN_FindByName(img, HOST_END);
+	if(RTN_Valid(host_end)) {
+
+
+    RTN_Open(host_end);
+
+    RTN_InsertCall(
+      host_end, IPOINT_BEFORE, (AFUNPTR)end_host,
+      IARG_END
+    );
+
+    RTN_Close(host_end);
 
 	}
 }

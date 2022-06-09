@@ -8,7 +8,9 @@ void Region::print(std::ofstream & of)
 {
   of << "#region " << _region_name << " " << _counts.size() << '\n';
   for(iter_t it = _counts.begin(); it != _counts.end(); ++it) {
-    of << std::hex << (*it).first.first << std::dec << " " << (*it).first.second << " " << (*it).second.first << " " << (*it).second.second << '\n';
+    of << std::hex << (*it).first.first << std::dec << " " << (*it).first.second << " ";
+    of << (*it).second.read_count << " " << (*it).second.write_count << " ";
+    of << (*it).second.read_count_outside << " " << (*it).second.write_count_outside << '\n';
   }
 }
 
@@ -19,11 +21,24 @@ void Region::read(uintptr_t addr, int32_t size)
 
   if(it == _counts.end()) {
 
-    _counts.insert(std::make_pair(std::make_pair(addr, size), std::make_pair(1, 0)));
+    _counts.insert(std::make_pair(std::make_pair(addr, size), AccessStats{1, 0, 0, 0}));
 
   } else {
 
-    (*it).second.first += 1;
+    (*it).second.read_count += 1;
+
+  }
+
+}
+
+void Region::read_host(uintptr_t addr, int32_t size)
+{
+
+  iter_t it = _counts.find(std::make_pair(addr, size));
+
+  if(it != _counts.end()) {
+
+    (*it).second.read_count_outside += 1;
 
   }
 
@@ -34,9 +49,18 @@ void Region::write(uintptr_t addr, int32_t size)
   iter_t it = _counts.find(std::make_pair(addr, size));
 
   if(it == _counts.end()) {
-    _counts.insert(std::make_pair(std::make_pair(addr, size), std::make_pair(0, 1)));
+    _counts.insert(std::make_pair(std::make_pair(addr, size), AccessStats{0, 1, 0, 0}));
   } else {
-    (*it).second.second += 1;
+    (*it).second.write_count += 1;
+  }
+}
+
+void Region::write_host(uintptr_t addr, int32_t size)
+{
+  iter_t it = _counts.find(std::make_pair(addr, size));
+
+  if(it != _counts.end()) {
+    (*it).second.write_count_outside += 1;
   }
 }
 
