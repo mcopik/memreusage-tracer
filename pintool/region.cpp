@@ -14,8 +14,17 @@ void Region::print(std::ofstream & of)
   }
 }
 
+uintptr_t Region::align_address(uintptr_t addr)
+{
+  if(addr % CACHELINE_SIZE)
+    return addr - addr % CACHELINE_SIZE;
+  else
+    return addr;
+}
+
 void Region::read(uintptr_t addr, int32_t size)
 {
+  addr = align_address(addr);
 
   iter_t it = _counts.find(std::make_pair(addr, size));
 
@@ -33,6 +42,7 @@ void Region::read(uintptr_t addr, int32_t size)
 
 void Region::read_host(uintptr_t addr, int32_t size)
 {
+  addr = align_address(addr);
 
   iter_t it = _counts.find(std::make_pair(addr, size));
 
@@ -46,6 +56,7 @@ void Region::read_host(uintptr_t addr, int32_t size)
 
 void Region::write(uintptr_t addr, int32_t size)
 {
+  addr = align_address(addr);
   iter_t it = _counts.find(std::make_pair(addr, size));
 
   if(it == _counts.end()) {
@@ -57,6 +68,7 @@ void Region::write(uintptr_t addr, int32_t size)
 
 void Region::write_host(uintptr_t addr, int32_t size)
 {
+  addr = align_address(addr);
   iter_t it = _counts.find(std::make_pair(addr, size));
 
   if(it != _counts.end()) {

@@ -22,6 +22,8 @@ struct Region {
   std::string _region_name;
   int32_t _count;
 
+  static constexpr int CACHELINE_SIZE = 64;
+
   typedef std::map<std::pair<uint64_t, int32_t>, AccessStats>::iterator iter_t;
 
   Region(std::string region_name):
@@ -35,6 +37,8 @@ struct Region {
   void read_host(uintptr_t addr, int32_t size);
   void print(std::ofstream &);
   void reset();
+
+  uintptr_t align_address(uintptr_t addr);
 
 };
 
