@@ -1,18 +1,33 @@
 #!/bin/bash
 
+function usage {
+  echo "Usage: memtracer_ompi [-o <output-file>] [-s <control-start>] [-e <control-end>] <application> <application-args>" >&2 ;
+} 
+function exit_error {
+  usage
+  exit 1
+}
+
 MPI_RANK=${OMPI_COMM_WORLD_RANK}
 
 output="tracer.out"
-while getopts "s:e:o:" opt; do
+while getopts "s:e:o:h" opt; do
   case $opt in
     s)  control_start=$OPTARG      ;;
     e)  control_end=$OPTARG   ;;
     o)  output=$OPTARG   ;;
-    *)  echo 'error' >&2
-        exit 1
+    h)  usage
+        exit 0;;
+    *)  exit_error
   esac
 done
 shift $(($OPTIND - 1))
+
+if [ -z "$@" ]; then
+  echo 'Missing application to be executed.' >&2
+  exit_error
+fi
+
 
 echo "Executing application $@, writing to $output"
 
