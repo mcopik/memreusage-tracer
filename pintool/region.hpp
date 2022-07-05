@@ -21,14 +21,14 @@ struct Region {
   std::map<std::pair<uint64_t, int32_t>, AccessStats> _counts;
   std::string _region_name;
   int32_t _count;
-
-  static constexpr int CACHELINE_SIZE = 64;
+  int32_t _cacheline_size;
 
   typedef std::map<std::pair<uint64_t, int32_t>, AccessStats>::iterator iter_t;
 
-  Region(std::string region_name):
+  Region(std::string region_name, int32_t cacheline_size):
     _region_name(region_name),
-    _count(0)
+    _count(0),
+    _cacheline_size(cacheline_size)
   {}
 
   void write(uintptr_t addr, int32_t size);
@@ -53,7 +53,7 @@ struct Regions {
   ~Regions();
 
   void filename(const std::string& filename);
-  Region* startRegion(std::string name);
+  Region* startRegion(std::string name, int cacheline_size);
   void endRegion(Region*);
   void open(const std::string& region);
   void close();

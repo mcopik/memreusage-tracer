@@ -13,6 +13,11 @@ KNOB<std::string> KnobOutputFile(
   "o", "tracer.out", "Specify filename of the output profile."
 );
 
+KNOB<int> KnobCachelineSize(
+  KNOB_MODE_WRITEONCE, "pintool",
+  "c", "64", "Specify cacheline size for tracing"
+);
+
 Regions memory_regions;
 Region* current_region;
 
@@ -33,7 +38,7 @@ VOID Handler(EVENT_TYPE ev, VOID* val, CONTEXT* ctxt, VOID* ip, THREADID tid, bo
   {
     case EVENT_START:
         ENABLED = 1;
-        current_region = memory_regions.startRegion("default");
+        current_region = memory_regions.startRegion("default", KnobCachelineSize.Value());
         break;
 
     case EVENT_STOP:
@@ -52,7 +57,7 @@ VOID start_roi(const char* name)
     memory_regions.endRegion(current_region);
     current_region = nullptr;
   }
-  current_region = memory_regions.startRegion(name);
+  current_region = memory_regions.startRegion(name, KnobCachelineSize.Value());
   ENABLED = 1;
 }
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function usage {
-  echo "Usage: memtracer_ompi [-o <output-file>] [-s <control-start>] [-e <control-end>] <application> <application-args>" >&2 ;
+  echo "Usage: memtracer_ompi [-o <output-file>] [-s <control-start>] [-e <control-end>] [ -c <cacheline-size> ] <application> <application-args>" >&2 ;
 } 
 function exit_error {
   usage
@@ -11,17 +11,22 @@ function exit_error {
 MPI_RANK=${OMPI_COMM_WORLD_RANK}
 
 output="tracer.out"
-while getopts "s:e:o:h" opt; do
+while getopts "s:e:o:c:h" opt; do
   case $opt in
     s)  control_start=$OPTARG      ;;
     e)  control_end=$OPTARG   ;;
     o)  output=$OPTARG   ;;
+    c)  cacheline_size=$OPTARG   ;;
     h)  usage
         exit 0;;
     *)  exit_error
   esac
 done
 shift $(($OPTIND - 1))
+
+if [ -z "${cacheline_size}" ]; then
+  cacheline_size=64
+fi
 
 if [ -z "$@" ]; then
   echo 'Missing application to be executed.' >&2
@@ -32,9 +37,9 @@ fi
 echo "Executing application $@, writing to $output"
 
 if [ "$control_start" = "" ] || [ "$control_end" = "" ]; then
-  @PINTOOL_PATH@ -t @CMAKE_CURRENT_BINARY_DIR@/pintool/obj-intel64/memtracer.so -o ${output}.${MPI_RANK} -- "$@"
+  @PINTOOL_PATH@ -t @CMAKE_CURRENT_BINARY_DIR@/pintool/obj-intel64/memtracer.so -c ${cacheline_size} -o ${output}.${MPI_RANK} -- "$@"
 else
   echo "Start tracing at call to $control_start, end tracing at $control_end"
-  @PINTOOL_PATH@ -t @CMAKE_CURRENT_BINARY_DIR@/pintool/obj-intel64/memtracer.so -control start:enter_func:${control_start},stop:exit_func:${control_end} -o ${output}.${MPI_RANK} -- "$@"
+  @PINTOOL_PATH@ -t @CMAKE_CURRENT_BINARY_DIR@/pintool/obj-intel64/memtracer.so -control start:enter_func:${control_start},stop:exit_func:${control_end} -c ${cacheline_size} -o ${output}.${MPI_RANK} -- "$@"
 fi
 

@@ -16,8 +16,8 @@ void Region::print(std::ofstream & of)
 
 uintptr_t Region::align_address(uintptr_t addr)
 {
-  if(addr % CACHELINE_SIZE)
-    return addr - addr % CACHELINE_SIZE;
+  if(addr % _cacheline_size)
+    return addr - addr % _cacheline_size;
   else
     return addr;
 }
@@ -100,13 +100,13 @@ void Regions::close()
     delete (*it).second;
 }
 
-Region* Regions::startRegion(std::string name)
+Region* Regions::startRegion(std::string name, int cacheline_size)
 {
   iter_t it = _regions.find(name);
 
   if(it  == _regions.end()) {
 
-    Region* region = new Region{name};
+    Region* region = new Region{name, cacheline_size};
     _regions.insert(std::make_pair(name, region));
     return region;
 
