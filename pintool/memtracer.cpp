@@ -18,6 +18,11 @@ KNOB<int> KnobCachelineSize(
   "c", "64", "Specify cacheline size for tracing"
 );
 
+KNOB<bool> KnobControllerActivate(
+  KNOB_MODE_WRITEONCE, "pintool",
+  "controller-activate", "false", "Active controller manager."
+);
+
 Regions memory_regions;
 Region* current_region;
 
@@ -229,7 +234,9 @@ int main(int argc, char * argv[])
   memory_regions.filename(KnobOutputFile.Value());
 
   CONTROL.RegisterHandler(Handler, 0, FALSE);
-  CONTROL.Activate();
+  if(KnobControllerActivate.Value()) {
+    CONTROL.Activate();
+  }
  
   IMG_AddInstrumentFunction(Image, 0);
 

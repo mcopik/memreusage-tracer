@@ -37,9 +37,9 @@ fi
 echo "Executing application $@, writing to $output"
 
 if [ "$control_start" = "" ] || [ "$control_end" = "" ]; then
-  @PINTOOL_PATH@ -t @CMAKE_CURRENT_BINARY_DIR@/pintool/obj-intel64/memtracer.so -c ${cacheline_size} -o ${output}.${MPI_RANK} -- "$@"
+  @PINTOOL_PATH@ -t @CMAKE_CURRENT_BINARY_DIR@/pintool/obj-intel64/memtracer.so -controller-activate 0 -c ${cacheline_size} -o ${output}.${MPI_RANK} -- "$@"
 else
   echo "Start tracing at call to $control_start, end tracing at $control_end"
-  @PINTOOL_PATH@ -t @CMAKE_CURRENT_BINARY_DIR@/pintool/obj-intel64/memtracer.so -control start:enter_func:${control_start},stop:exit_func:${control_end} -c ${cacheline_size} -o ${output}.${MPI_RANK} -- "$@"
+  @PINTOOL_PATH@ -t @CMAKE_CURRENT_BINARY_DIR@/pintool/obj-intel64/memtracer.so -controller-activate 1 -control start:enter_func:${control_start},stop:exit_func:${control_end} -c ${cacheline_size} -o ${output}.${MPI_RANK} -- "$@"
 fi
 
