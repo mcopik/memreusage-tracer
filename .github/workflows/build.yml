@@ -1,0 +1,20 @@
+name: build
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  build-and-test:
+    container: mcopik/memreuse-analyzer:pintool
+    steps:
+      - uses: actions/checkout@v3
+      - name: configure
+        run: |
+          cmake -S . -B build -GNinja -DWITH_TESTING=On
+      - name: build
+        run: |
+					cmake --build build
+      - name: tests
+        run: |
+					cd build && ctest --verbose
