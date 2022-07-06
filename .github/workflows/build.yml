@@ -14,7 +14,7 @@ jobs:
           cmake -S . -B build -GNinja -DWITH_TESTING=On
       - name: build
         run: |
-					cmake --build build
+          cmake --build build
       - name: tests
         run: |
-					cd build && ctest --verbose
+          cd build && ctest --verbose
