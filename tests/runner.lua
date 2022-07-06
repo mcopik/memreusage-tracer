@@ -11,10 +11,9 @@ for s in input:gmatch("variable:[^\n]+") do
 end
 
 local test_module = os.getenv("TEST_MODULE")
+local test_name = os.getenv("TEST_NAME")
 package.path = package.path .. ";" .. "/home/mcopik/projects/ETH/serverless/2022/performance_modeling/pintool_tests/pintool-memory-analyzer/tests/?.lua" .. ";" .. test_module .. "/?.lua"
-print(package.path)
-local test_suite = require("single_function")
---"serial/single_function"
+local test_suite = require(test_name)
 
 test_suite.test_suite(variables)
 
