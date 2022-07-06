@@ -17,6 +17,5 @@ jobs:
         run: |
           cmake --build ${{github.workspace}}/build
       - name: tests
-        working-directory: ${{github.workspace}}/build
         run: |
-          ctest --verbose
+          cd ${{github.workspace}}/build && ctest --verbose
