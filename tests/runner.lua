@@ -5,9 +5,13 @@ variables = {}
 print(input)
 
 for s in input:gmatch("variable:[^\n]+") do
-  local _, name, value = string.match(s, "(%w+): (%w+): (%w+)")
-  value = tonumber(value)
-  variables[name] = value
+  -- Look for the following lines: variable: {name} {addr}
+  local _, name, value = string.match(s, "(%w+): ([%w_]+): (%w+)")
+
+  if name ~= nil and value ~= nil then
+    value = tonumber(value)
+    variables[name] = value
+  end
 end
 
 local test_module = os.getenv("TEST_MODULE")
