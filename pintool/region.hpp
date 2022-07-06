@@ -18,12 +18,14 @@ struct AccessStats {
 
 struct Region {
 
-  std::map<std::pair<uint64_t, int32_t>, AccessStats> _counts;
+  // Number of bytes counted as a single access
+  static constexpr int MEMORY_ACCESS_GRANULARITY = 4;
+
+  typedef std::map<uint64_t, AccessStats>::iterator iter_t;
+  std::map<uint64_t, AccessStats> _counts;
   std::string _region_name;
   int32_t _count;
   int32_t _cacheline_size;
-
-  typedef std::map<std::pair<uint64_t, int32_t>, AccessStats>::iterator iter_t;
 
   Region(std::string region_name, int32_t cacheline_size):
     _region_name(region_name),

@@ -8,7 +8,7 @@ void Region::print(std::ofstream & of)
 {
   of << "#region " << _region_name << " " << _counts.size() << '\n';
   for(iter_t it = _counts.begin(); it != _counts.end(); ++it) {
-    of << std::hex << (*it).first.first << std::dec << " " << (*it).first.second << " ";
+    of << std::hex << (*it).first << std::dec << " ";
     of << (*it).second.read_count << " " << (*it).second.write_count << " ";
     of << (*it).second.read_count_outside << " " << (*it).second.write_count_outside << '\n';
   }
@@ -24,56 +24,68 @@ uintptr_t Region::align_address(uintptr_t addr)
 
 void Region::read(uintptr_t addr, int32_t size)
 {
-  addr = align_address(addr);
 
-  iter_t it = _counts.find(std::make_pair(addr, size));
+  for(int i = 0; i < size; i += MEMORY_ACCESS_GRANULARITY) {
 
-  if(it == _counts.end()) {
+    auto aligned_addr = align_address(addr + i);
+    iter_t it = _counts.find(aligned_addr);
 
-    _counts.insert(std::make_pair(std::make_pair(addr, size), AccessStats{1, 0, 0, 0}));
+    if(it == _counts.end()) {
 
-  } else {
+      _counts.insert(std::make_pair(aligned_addr, AccessStats{1, 0, 0, 0}));
 
-    (*it).second.read_count += 1;
-
+    } else {
+      (*it).second.read_count += 1;
+    }
   }
 
 }
 
 void Region::read_host(uintptr_t addr, int32_t size)
 {
-  addr = align_address(addr);
 
-  iter_t it = _counts.find(std::make_pair(addr, size));
+  for(int i = 0; i < size; i += MEMORY_ACCESS_GRANULARITY) {
 
-  if(it != _counts.end()) {
+    auto aligned_addr = align_address(addr + i);
+    iter_t it = _counts.find(aligned_addr);
 
-    (*it).second.read_count_outside += 1;
-
+    if(it != _counts.end()) {
+      (*it).second.read_count_outside += 1;
+    }
   }
 
 }
 
 void Region::write(uintptr_t addr, int32_t size)
 {
-  addr = align_address(addr);
-  iter_t it = _counts.find(std::make_pair(addr, size));
 
-  if(it == _counts.end()) {
-    _counts.insert(std::make_pair(std::make_pair(addr, size), AccessStats{0, 1, 0, 0}));
-  } else {
-    (*it).second.write_count += 1;
+  for(int i = 0; i < size; i += MEMORY_ACCESS_GRANULARITY) {
+
+    auto aligned_addr = align_address(addr + i);
+    iter_t it = _counts.find(aligned_addr);
+
+    if(it == _counts.end()) {
+      _counts.insert(std::make_pair(aligned_addr, AccessStats{0, 1, 0, 0}));
+    } else {
+      (*it).second.write_count += 1;
+    }
   }
+
 }
 
 void Region::write_host(uintptr_t addr, int32_t size)
 {
-  addr = align_address(addr);
-  iter_t it = _counts.find(std::make_pair(addr, size));
 
-  if(it != _counts.end()) {
-    (*it).second.write_count_outside += 1;
+  for(int i = 0; i < size; i += MEMORY_ACCESS_GRANULARITY) {
+
+    auto aligned_addr = align_address(addr + i);
+    iter_t it = _counts.find(aligned_addr);
+
+    if(it != _counts.end()) {
+      (*it).second.write_count_outside += 1;
+    }
   }
+
 }
 
 void Region::reset()
