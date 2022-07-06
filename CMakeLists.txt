@@ -19,6 +19,11 @@ set_target_properties(memreuse PROPERTIES PUBLIC_HEADER "library/include/memreus
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bin/memtracer.in ${CMAKE_CURRENT_BINARY_DIR}/bin/memtracer @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bin/memtracer_ompi.in ${CMAKE_CURRENT_BINARY_DIR}/bin/memtracer_ompi @ONLY)
 
+option(WITH_TESTING "Enable testing" Off)
+if(${WITH_TESTING})
+  include(testing)
+endif()
+
 install(
   TARGETS memreuse 
   PUBLIC_HEADER DESTINATION include/

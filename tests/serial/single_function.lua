@@ -7,7 +7,7 @@ function test_suite(variables)
   local cacheline_size = tonumber(os.getenv("CACHELINE_SIZE"))
   --print(tracer_output, cacheline_size)
 
-  trace = read_trace.read_trace(tracer_output)
+  trace = read_trace.read_trace(tracer_output .. ".foo.0")
 
   -- Generate array accesses
   local array_size = 100
