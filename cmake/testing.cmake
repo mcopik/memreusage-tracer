@@ -4,7 +4,7 @@ enable_testing()
 find_package(LuaExec REQUIRED)
 
 set(tests serial_single_function)
-set(serial_single_function tests/serial/single_function.cpp 1) #64)
+set(serial_single_function tests/serial/single_function.cpp 1 64)
 
 foreach(list_name IN LISTS tests)
 
@@ -28,12 +28,12 @@ foreach(list_name IN LISTS tests)
 
     add_test(
       NAME ${testname}_${cachesize}
-      COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/bin/memtracer -c ${cachesize} -o ${testname}_${cache}.out $<TARGET_FILE:${testname}_exe> | ${LUA_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/runner.lua" WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tests/
+      COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/bin/memtracer -c ${cachesize} -o ${testname}_${cachesize}.out $<TARGET_FILE:${testname}_exe> | ${LUA_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/runner.lua" WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tests/
     )
     set_tests_properties(
       ${testname}_${cachesize}
       PROPERTIES ENVIRONMENT
-      "TEST_MODULE=${CMAKE_CURRENT_SOURCE_DIR}/tests/serial;CACHELINE_SIZE=${cachesize};TRACER_OUTPUT=${CMAKE_CURRENT_BINARY_DIR}/tests/${testname}_${cache}.out"
+      "TEST_MODULE=${CMAKE_CURRENT_SOURCE_DIR}/tests/serial;TEST_NAME=${filename};CACHELINE_SIZE=${cachesize};TRACER_OUTPUT=${CMAKE_CURRENT_BINARY_DIR}/tests/${testname}_${cachesize}.out"
     )
 
   endforeach()
