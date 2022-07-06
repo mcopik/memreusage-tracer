@@ -33,7 +33,7 @@ foreach(list_name IN LISTS tests)
     set_tests_properties(
       ${testname}_${cachesize}
       PROPERTIES ENVIRONMENT
-      "TEST_MODULE=${CMAKE_CURRENT_SOURCE_DIR}/tests/serial;TEST_NAME=${filename};CACHELINE_SIZE=${cachesize};TRACER_OUTPUT=${CMAKE_CURRENT_BINARY_DIR}/tests/${testname}_${cachesize}.out"
+      "TEST_MODULE=${CMAKE_CURRENT_SOURCE_DIR}/tests/serial;TEST_NAME=${filename};CACHELINE_SIZE=${cachesize};TESTS_LOCATION=${CMAKE_CURRENT_SOURCE_DIR}/tests;TRACER_OUTPUT=${CMAKE_CURRENT_BINARY_DIR}/tests/${testname}_${cachesize}.out"
     )
 
   endforeach()
