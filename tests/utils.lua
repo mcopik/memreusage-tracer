@@ -80,6 +80,13 @@ function check_accesses(accesses, trace)
     reads = data[1]
     writes = data[2]
 
+    -- For simplicity, we allow tests to generate empty accesses.
+    -- This simplifies writing tests for many iterations when sometimes we might have 'zero'
+    -- accesses instead of adding more if conditions.
+    if reads == 0 and writes == 0 then
+      goto continue
+    end
+
     local addr_data = trace[addr]
     if addr_data == nil then
       error('Address ' .. addr .. ' missing in the trace output!')
@@ -96,7 +103,8 @@ function check_accesses(accesses, trace)
     else
       addr_data[2] = addr_data[2] - writes
     end
-    
+
+    ::continue::
   end
 
 end
