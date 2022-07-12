@@ -65,7 +65,7 @@ function test_suite(variables)
   utils.check_accesses(accesses, trace)
 
   -- Now performing checks on the host side - no loop accesses should exist.
-  -- counter variables should be there - we read their pointers for printing.
+  -- Counter variables should be there - we initialize their values when copying.
 
   trace = utils.read_trace(tracer_output .. ".host.0")
 
@@ -98,7 +98,7 @@ function test_suite(variables)
   utils.check_accesses_not_exist(accesses, trace)
 
   -- Loop variables - we check only for cacheline size 1
-  -- Otherwise, other variables can get mixed in.
+  -- Otherwise, other stack variables can get mixed in.
   if cacheline_size == 1 then
 
     accesses = {}
