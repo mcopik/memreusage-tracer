@@ -81,7 +81,7 @@ VOID start_roi(const char* name)
     current_host_region = nullptr;
 
     // Update previous host region with information which region follows it.
-    if(host_region_changes.size())
+    if(host_region_changes.size() > 0)
       host_region_changes.back().after = curr_host_event;
 
     // Create new event change
@@ -104,6 +104,9 @@ VOID start_host()
 {
   HOST_ENABLED = 1;
   current_host_region = memory_regions.start_region("host", KnobCachelineSize.Value());
+
+  // Initial event - there is no "before" event for starting host.
+  host_region_changes.push_back(HostEvent());
 }
 
 VOID end_host()

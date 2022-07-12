@@ -107,26 +107,36 @@ function test_suite(variables)
 
   end
 
-  -- Check
+  -- Check the JSON output
   json_cfg = utils.read_trace_json_configuration(tracer_output .. ".host_events")
 
-  if #json_cfg ~= 1 then 
-    error("Expected one element in JSON configuration, got " .. #json_cfg)
+  if #json_cfg ~= 2 then 
+    error("Expected two elements in JSON configuration, got " .. #json_cfg)
   end
 
-  event = json_cfg[1]["before"]
-  if event == nil then
+  first_event = json_cfg[1]["after"]
+  if first_event == nil then
+    error("'After' key not found in the configuration")
+  end
+
+  second_event = json_cfg[2]["before"]
+  if second_event == nil then
     error("'Before' key not found in the configuration")
   end
 
-  before_region = event["region"]
-  if before_region == nil or before_region ~= "foo" then
-    error("Expected 'before' region name 'foo ', got " .. before_region)
-  end
+  events = {first_event, second_event}
+  for k, event in pairs(events) do
 
-  before_counter = event["counter"]
-  if before_counter == nil or before_counter ~= 0 then
-    error("Expected 'before' counter 0, got " .. before_counter)
+    region = event["region"]
+    if region == nil or region ~= "foo" then
+      error("Event " .. k .. ", expected region name 'foo ', got " .. before_region)
+    end
+
+    counter = event["counter"]
+    if counter == nil or counter ~= 0 then
+      error("Event " .. k .. ", expected counter 0, got " .. before_counter)
+    end
+
   end
 
   return reserved
