@@ -11,9 +11,6 @@ struct AccessStats {
   int32_t read_count;
   int32_t write_count;
 
-  int32_t read_count_outside;
-  int32_t write_count_outside;
-
 };
 
 struct Region {
@@ -35,10 +32,10 @@ struct Region {
 
   void write(uintptr_t addr, int32_t size);
   void read(uintptr_t addr, int32_t size);
-  void write_host(uintptr_t addr, int32_t size);
-  void read_host(uintptr_t addr, int32_t size);
   void print(std::ofstream &);
   void reset();
+
+  int32_t count() const;
 
   uintptr_t align_address(uintptr_t addr);
 
@@ -55,10 +52,46 @@ struct Regions {
   ~Regions();
 
   void filename(const std::string& filename);
-  Region* startRegion(std::string name, int cacheline_size);
-  void endRegion(Region*);
+  Region* start_region(std::string name, int cacheline_size);
+  void end_region(Region*);
   void open(const std::string& region);
   void close();
+
+};
+
+struct HostEvent
+{
+  std::string region_name;
+  int counter;
+
+  HostEvent():
+    region_name(""),
+    counter(-1)
+  {}
+
+  HostEvent(std::string region_name, int counter):
+    region_name(region_name),
+    counter(counter)
+  {}
+
+  bool empty() const;
+
+  void print(std::ofstream &, const std::string &) const;
+
+};
+
+struct HostRegionChange
+{
+  HostEvent before, after;
+
+  HostRegionChange(const HostEvent & pred):
+    before(pred)
+  {}
+
+  HostRegionChange()
+  {}
+
+  void print(std::ofstream &, const std::string &) const;
 
 };
 

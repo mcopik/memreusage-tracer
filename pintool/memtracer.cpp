@@ -25,6 +25,7 @@ KNOB<bool> KnobControllerActivate(
 
 Regions memory_regions;
 Region* current_region;
+Region* current_host_region;
 
 const char * ROI_BEGIN = "__memreuse_roi_begin";
 const char * ROI_END = "__memreuse_roi_end";
@@ -35,6 +36,10 @@ static CONTROLLER::CONTROL_MANAGER CONTROL;
 bool ENABLED = false;
 bool HOST_ENABLED = false;
 
+HostEvent curr_host_event, prev_host_event;
+
+std::vector<HostRegionChange> host_region_changes;
+
 using namespace CONTROLLER;
 
 VOID Handler(EVENT_TYPE ev, VOID* val, CONTEXT* ctxt, VOID* ip, THREADID tid, bool bcast)
@@ -43,12 +48,12 @@ VOID Handler(EVENT_TYPE ev, VOID* val, CONTEXT* ctxt, VOID* ip, THREADID tid, bo
   {
     case EVENT_START:
         ENABLED = 1;
-        current_region = memory_regions.startRegion("default", KnobCachelineSize.Value());
+        current_region = memory_regions.start_region("default", KnobCachelineSize.Value());
         break;
 
     case EVENT_STOP:
         ENABLED = 0;
-        memory_regions.endRegion(current_region);
+        memory_regions.end_region(current_region);
         break;
 
     default:
@@ -58,39 +63,66 @@ VOID Handler(EVENT_TYPE ev, VOID* val, CONTEXT* ctxt, VOID* ip, THREADID tid, bo
 
 VOID start_roi(const char* name)
 {
+  // Stop the region that we are currently ijn.
   if(current_region) {
-    memory_regions.endRegion(current_region);
+    memory_regions.end_region(current_region);
     current_region = nullptr;
   }
-  current_region = memory_regions.startRegion(name, KnobCachelineSize.Value());
+
+  // Start a new region
+  current_region = memory_regions.start_region(name, KnobCachelineSize.Value());
+  prev_host_event = curr_host_event;
+  curr_host_event = HostEvent(name, current_region->count());
   ENABLED = 1;
+
+  // Finish the host region
+  if(HOST_ENABLED) {
+    memory_regions.end_region(current_host_region);
+    current_host_region = nullptr;
+
+    // Update previous host region with information which region follows it.
+    if(host_region_changes.size())
+      host_region_changes.back().after = curr_host_event;
+
+    // Create new event change
+    host_region_changes.push_back(HostEvent(curr_host_event));
+
+  }
 }
 
 VOID end_roi(const char* name)
 {
   ENABLED = 0;
+
+  // Restart host region after escaping ROI
+  if(HOST_ENABLED) {
+    current_host_region = memory_regions.start_region("host", KnobCachelineSize.Value());
+  }
 }
 
 VOID start_host()
 {
   HOST_ENABLED = 1;
+  current_host_region = memory_regions.start_region("host", KnobCachelineSize.Value());
 }
 
 VOID end_host()
 {
   HOST_ENABLED = 0;
   if(current_region) {
-    memory_regions.endRegion(current_region);
+    memory_regions.end_region(current_region);
     current_region = nullptr;
   }
+  memory_regions.end_region(current_host_region);
+  current_host_region = nullptr;
 }
  
 VOID memory_read(VOID* ip, VOID* addr, UINT32 size)
 {
   if(ENABLED) {
     current_region->read(reinterpret_cast<uintptr_t>(addr), size);
-  } else if(HOST_ENABLED && current_region) {
-    current_region->read_host(reinterpret_cast<uintptr_t>(addr), size);
+  } else if(HOST_ENABLED) {
+    current_host_region->read(reinterpret_cast<uintptr_t>(addr), size);
   }
 }
 
@@ -98,8 +130,8 @@ VOID memory_write(VOID* ip, VOID* addr, UINT32 size)
 {
   if(ENABLED) {
     current_region->write(reinterpret_cast<uintptr_t>(addr), size);
-  } else if(HOST_ENABLED && current_region) {
-    current_region->write_host(reinterpret_cast<uintptr_t>(addr), size);
+  } else if(HOST_ENABLED) {
+    current_host_region->write(reinterpret_cast<uintptr_t>(addr), size);
   }
 } 
 
@@ -210,10 +242,36 @@ VOID Image(IMG img, VOID *v)
 VOID fini(INT32 code, VOID* v)
 {
   if(current_region)
-    memory_regions.endRegion(current_region);
+    memory_regions.end_region(current_region);
+  if(current_host_region)
+    memory_regions.end_region(current_host_region);
   memory_regions.close();
 	//LOG_FILE << "eof\n" << std::endl;
 	//LOG_FILE.close();
+
+  if(!host_region_changes.empty()) {
+
+    std::string file = KnobOutputFile.Value() + ".host_events";
+    std::ofstream of(file.c_str(), std::ios::out);
+
+    // Manual JSON export - C++11 not supported in pintools.
+    of << "[\n";
+
+    for(size_t i = 0; i < host_region_changes.size(); ++i) {
+
+      host_region_changes[i].print(of, "  ");
+
+      // JSON does not permit trailing comma
+      if(i < host_region_changes.size() - 1)
+        of << ",\n";
+      else
+        of << '\n';
+    }
+
+    of << "]\n";
+
+    of.close();
+  }
 }
 
 
@@ -232,6 +290,9 @@ int main(int argc, char * argv[])
     return usage();
 
   memory_regions.filename(KnobOutputFile.Value());
+
+  current_region = nullptr;
+  current_host_region = nullptr;
 
   CONTROL.RegisterHandler(Handler, 0, FALSE);
   if(KnobControllerActivate.Value()) {

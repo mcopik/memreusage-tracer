@@ -9,9 +9,13 @@ void Region::print(std::ofstream & of)
   of << "#region " << _region_name << " " << _counts.size() << '\n';
   for(iter_t it = _counts.begin(); it != _counts.end(); ++it) {
     of << std::hex << (*it).first << std::dec << " ";
-    of << (*it).second.read_count << " " << (*it).second.write_count << " ";
-    of << (*it).second.read_count_outside << " " << (*it).second.write_count_outside << '\n';
+    of << (*it).second.read_count << " " << (*it).second.write_count << '\n';
   }
+}
+
+int32_t Region::count() const
+{
+  return _count;
 }
 
 uintptr_t Region::align_address(uintptr_t addr)
@@ -32,25 +36,10 @@ void Region::read(uintptr_t addr, int32_t size)
 
     if(it == _counts.end()) {
 
-      _counts.insert(std::make_pair(aligned_addr, AccessStats{1, 0, 0, 0}));
+      _counts.insert(std::make_pair(aligned_addr, AccessStats{1, 0}));
 
     } else {
       (*it).second.read_count += 1;
-    }
-  }
-
-}
-
-void Region::read_host(uintptr_t addr, int32_t size)
-{
-
-  for(int i = 0; i < size; i += MEMORY_ACCESS_GRANULARITY) {
-
-    auto aligned_addr = align_address(addr + i);
-    iter_t it = _counts.find(aligned_addr);
-
-    if(it != _counts.end()) {
-      (*it).second.read_count_outside += 1;
     }
   }
 
@@ -65,24 +54,9 @@ void Region::write(uintptr_t addr, int32_t size)
     iter_t it = _counts.find(aligned_addr);
 
     if(it == _counts.end()) {
-      _counts.insert(std::make_pair(aligned_addr, AccessStats{0, 1, 0, 0}));
+      _counts.insert(std::make_pair(aligned_addr, AccessStats{0, 1}));
     } else {
       (*it).second.write_count += 1;
-    }
-  }
-
-}
-
-void Region::write_host(uintptr_t addr, int32_t size)
-{
-
-  for(int i = 0; i < size; i += MEMORY_ACCESS_GRANULARITY) {
-
-    auto aligned_addr = align_address(addr + i);
-    iter_t it = _counts.find(aligned_addr);
-
-    if(it != _counts.end()) {
-      (*it).second.write_count_outside += 1;
     }
   }
 
@@ -112,7 +86,7 @@ void Regions::close()
     delete (*it).second;
 }
 
-Region* Regions::startRegion(std::string name, int cacheline_size)
+Region* Regions::start_region(std::string name, int cacheline_size)
 {
   iter_t it = _regions.find(name);
 
@@ -128,7 +102,7 @@ Region* Regions::startRegion(std::string name, int cacheline_size)
 
 }
 
-void Regions::endRegion(Region* region)
+void Regions::end_region(Region* region)
 {
   char counter[17];
   sprintf(counter, "%d", region->_count);
@@ -139,4 +113,44 @@ void Regions::endRegion(Region* region)
   log_file.close();
 }
 
+bool HostEvent::empty() const
+{
+  return region_name.empty() || counter == -1;
+}
+
+void HostEvent::print(std::ofstream & of, const std::string & prefix) const
+{
+  of << prefix << "{\n";
+  of << prefix + prefix << "\"region\":\t\"" << region_name << "\",\n";
+  of << prefix + prefix << "\"counter\":\t" << counter << "\n";
+  of << prefix << "}";
+}
+
+void HostRegionChange::print(std::ofstream & of, const std::string & prefix) const
+{
+  of << prefix << "{\n";
+
+  if(!before.empty()) {
+
+    of << prefix << prefix << "\"before\":";
+    before.print(of, prefix + prefix);
+
+    // JSON does not permit trailing comma
+    if(!after.empty())
+      of << prefix << ",\n";
+    else
+      of << prefix << '\n';
+
+  }
+
+  if(!after.empty()) {
+
+    of << prefix << prefix << "\"after\": ";
+    after.print(of, prefix + prefix + prefix);
+
+  }
+
+  of << prefix << "}";
+
+}
 
