@@ -9,16 +9,16 @@ set(tests
   serial_iterations
   serial_single_function_host
   serial_single_function_host_reuse
-  #serial_two_functions_host_reuse
-  #serial_iterations_host_reuse
+  serial_two_functions_host_reuse
+  serial_iterations_host_reuse
 )
 set(serial_single_function tests/serial/single_function.cpp 1 64)
 set(serial_two_functions tests/serial/two_functions.cpp 1 64)
 set(serial_iterations tests/serial/iterations.cpp 1 64)
 set(serial_single_function_host tests/serial/single_function_host.cpp 1 64)
 set(serial_single_function_host_reuse tests/serial/single_function_host_reuse.cpp 1 64)
-#set(serial_two_functions_host_reuse tests/serial/two_functions_host_reuse.cpp 1 64)
-#set(serial_iterations_host_reuse tests/serial/iterations_host_reuse.cpp 1 64)
+set(serial_two_functions_host_reuse tests/serial/two_functions_host_reuse.cpp 1 64)
+set(serial_iterations_host_reuse tests/serial/iterations_host_reuse.cpp 1 64)
 
 foreach(list_name IN LISTS tests)
 
