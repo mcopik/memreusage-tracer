@@ -76,7 +76,7 @@ function test_suite(variables)
   -- All iterations, except the last one, read the first position.
   -- All iterations, except the first one, read the second position.
 
-  for iteration=0,size-1 do
+  for iteration=0,size do
 
     print('Processing host trace: ' .. tracer_output .. ".host." .. iteration)
     trace = utils.read_trace(tracer_output .. ".host." .. iteration)
@@ -87,14 +87,14 @@ function test_suite(variables)
 
     local array_addr = utils.get_var_address(variables, 'array')
 
-    if iteration < size - 1 then
+    if iteration < size then
       local addr = utils.align_addr(array_addr, cacheline_size)
       utils.add_accesses(existing_accesses, addr, 0, 1)
     end
 
     if iteration > 0 then
       local addr = utils.align_addr(array_addr + 4, cacheline_size)
-      utils.add_accesses(existing_accesses, addr, 1, 0)
+      utils.add_accesses(existing_accesses, addr, 0, 1)
     end
 
     -- Remove existing accesses - first and last
