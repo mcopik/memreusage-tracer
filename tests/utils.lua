@@ -154,7 +154,7 @@ function check_accesses_not_exist(accesses, trace)
 
     local addr_data = trace[addr]
     if addr_data ~= nil then
-      error('Address ' .. addr .. ' exists in the trace but it should not!')
+      error('Address ' .. string.format("%x", addr) .. ' exists in the trace but it should not!')
     end
 
     ::continue::
