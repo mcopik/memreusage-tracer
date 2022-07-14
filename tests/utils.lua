@@ -111,17 +111,17 @@ function check_accesses(accesses, trace)
 
     local addr_data = trace[addr]
     if addr_data == nil then
-      error('Address ' .. addr .. ' missing in the trace output!')
+      error('Address ' .. string.format("%x", addr) .. ' missing in the trace output!')
     end
 
     if addr_data[1] < reads then
-      error('Incorrect number of reads ' .. addr_data[1] .. ' at address ' .. addr .. ', expected ' .. reads)
+      error('Incorrect number of reads ' .. addr_data[1] .. ' at address ' .. string.format("%x", addr) .. ', expected ' .. reads)
     else
       addr_data[1] = addr_data[1] - reads
     end
 
     if addr_data[2] < writes then
-      error('Incorrect number of reads ' .. addr_data[2] .. ' at address ' .. addr .. ', expected ' .. reads)
+      error('Incorrect number of writes ' .. addr_data[2] .. ' at address ' .. string.format("%x", addr) .. ', expected ' .. writes)
     else
       addr_data[2] = addr_data[2] - writes
     end
