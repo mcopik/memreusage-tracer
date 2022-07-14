@@ -51,12 +51,18 @@ function print_accesses(accesses)
 
 end
 
+function table_len(T)
+  local count = 0
+  for _ in pairs(T) do count = count + 1 end
+  return count
+end
+
 function add_accesses(collection, addr, reads, writes)
 
-  local access_data = accesses[addr]
+  local access_data = collection[addr]
   if access_data == nil then
     access_data = {reads, writes}
-    accesses[addr] = access_data
+    collection[addr] = access_data
   else
     access_data[1] = access_data[1] + reads
     access_data[2] = access_data[2] + writes
@@ -165,6 +171,7 @@ return {
   check_accesses_not_exist = check_accesses_not_exist,
   get_var_address = get_var_address,
   align_addr = align_addr,
-  add_accesses = add_accesses
+  add_accesses = add_accesses,
+  table_len = table_len
 }
 
