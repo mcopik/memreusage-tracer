@@ -106,7 +106,7 @@ function test_suite(variables)
   local addr = utils.align_addr(array_addr, cacheline_size)
   utils.add_accesses(existing_accesses, addr, 1, 0)
   local addr = utils.align_addr(array_addr + (array_size - 1) * 4, cacheline_size)
-  utils.add_accesses(accesses, addr, 0, 1)
+  utils.add_accesses(existing_accesses, addr, 0, 1)
 
   -- Remove existing accesses - first and last
   generate_accesses_array(not_existing_accesses, variables, cacheline_size, array_size)
@@ -126,11 +126,11 @@ function test_suite(variables)
 
   local array_addr = utils.get_var_address(variables, 'array')
   local addr = utils.align_addr(array_addr, cacheline_size)
-  utils.add_accesses(existing_accesses, addr, 1, 0)
-  local addr = utils.align_addr(array_addr, cacheline_size)
+  utils.add_accesses(existing_accesses, addr, 0, 1)
+  local addr = utils.align_addr(array_addr + 4, cacheline_size)
   utils.add_accesses(existing_accesses, addr, 1, 1)
   local addr = utils.align_addr(array_addr + (array_size - 1) * 4, cacheline_size)
-  utils.add_accesses(accesses, addr, 0, 1)
+  utils.add_accesses(existing_accesses, addr, 1, 0)
 
   -- Remove existing accesses - first and last
   generate_accesses_array(not_existing_accesses, variables, cacheline_size, array_size)
