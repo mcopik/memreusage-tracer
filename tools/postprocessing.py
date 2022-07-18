@@ -40,12 +40,14 @@ def find_reuse(host_df, region_df, reuse_type: ReuseType):
         df['read_host'] = 0
         df['write_host'] = 0
 
+
     # We look for cachelines written by the kernel and read by the host.
     if reuse_type == ReuseType.READ_HOST:
         df.loc[(df['write'] > 0 ) & (df['read_data_host'] > 0), 'read_host'] = 1
     # We look for cachelines read by the kernel and written by the host.
     else:
         df.loc[(df['read'] > 0 ) & (df['write_data_host'] > 0), 'write_host'] = 1
+
 
     df.drop(labels=['read_data_host', 'write_data_host'], axis=1, inplace=True)
 
@@ -170,12 +172,12 @@ def process(filename: str, cacheline: int):
 
                 result.append([
                     region, iteration,
-                    len(read) * cacheline,
-                    (len(read_addresses) - old_read_addresses_len) * cacheline,
-                    len(write) * cacheline,
-                    (len(write_addresses) - old_write_addresses_len) * cacheline,
-                    len(read_host_addresses) * cacheline,
-                    len(write_host_addresses) * cacheline
+                    len(read) * cacheline * 4,
+                    (len(read_addresses) - old_read_addresses_len) * cacheline * 4,
+                    len(write) * cacheline * 4,
+                    (len(write_addresses) - old_write_addresses_len) * cacheline * 4,
+                    len(read_host_addresses) * cacheline * 4,
+                    len(write_host_addresses) * cacheline * 4
                 ])
 
                 pb.update(1)
